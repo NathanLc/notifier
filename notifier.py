@@ -103,7 +103,7 @@ class NewsTracker:
 
 	def extractArticle(self, historyLine):
 		""" Build an article from an history line. """
-		lineSplit = histroyLine.split(self.separator)
+		lineSplit = historyLine.split(self.separator)
 		article = {}
 		article['date'] = lineSplit[0]
 		article['title'] = lineSplit[1]
