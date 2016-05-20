@@ -12,7 +12,5 @@ config = {
 
 nc = notifier.NewsCrawler(config)
 
-articles = nc.getArticlesList()
-
-for art in articles:
-	print(art['title'])
+tracker = notifier.NewsTracker('/Users/nathan/sandbox/Notifier/logs/log.notifier', nc)
+tracker.update()

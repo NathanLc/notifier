@@ -1,4 +1,6 @@
-import requests, bs4, os
+import requests, bs4, os, datetime
+
+# TODO: Create an article class to have the same format in NewsCrawler and Tracker
 
 class NewsCrawler:
 	"""
@@ -25,11 +27,13 @@ class NewsCrawler:
 		self.articles = None
 
 	def getRequest(self):
+		""" Check if targeted url is accessible. Raises an exception if not. """
 		res = requests.get(self.url)
 		res.raise_for_status()
 		return res
 
 	def getSoup(self):
+		""" Get the content of the targeted url. """
 		if self.soup is not None:
 			return self.soup
 
@@ -39,6 +43,7 @@ class NewsCrawler:
 		return self.soup
 
 	def getArticlesList(self):
+		""" Get the list of articles adapted, from the page. """
 		if self.articles is not None:
 			return self.articles
 
@@ -47,6 +52,7 @@ class NewsCrawler:
 		return self.articles
 
 	def buildArticlesList(self):
+		""" Extract articles from the targeted page and build an adapted list of these articles for later easier treatment. """
 		soup = self.getSoup()
 		articleTags = soup.select(self.articleSelector)
 		articles = []
@@ -56,7 +62,7 @@ class NewsCrawler:
 			title = tag.select_one(self.titleSelector)
 			body = tag.select_one(self.bodySelector)
 			article['title'] = title.string
-			article['link'] = title['href']
+			article['link'] = title.get('href', '')
 			article['body'] = body.string
 			articles.append(article)
 
@@ -83,4 +89,56 @@ class NewsTracker:
 			raise Exception('newsCrawler is not an instance of NewsCrawler.')
 
 		self.historyFile = historyFile
-		self.NewsCrawler = NewsCrawler
+		self.newsCrawler = newsCrawler
+		self.separator = ' ||| '
+
+	def saveArticle(self, article):
+		""" Saves an article to the history file. """
+		nowObj = datetime.datetime.now()
+		dateStr = nowObj.strftime("%Y-%m-%d %H:%M:%S")
+		historyLine = self.separator.join(dateStr, article['title'], article['link'], article['body'])
+
+		with open(self.historyFile, 'a') as file:
+			file.write(historyLine+'\n')
+
+	def extractArticle(self, historyLine):
+		""" Build an article from an history line. """
+		lineSplit = histroyLine.split(self.separator)
+		article = {}
+		article['date'] = lineSplit[0]
+		article['title'] = lineSplit[1]
+		article['link'] = lineSplit[2]
+		article['body'] = lineSplit[3]
+
+		return article
+
+	def getArticlesHistory(self):
+		""" Get the list of former articles from the history. """
+		historyLines = []
+		with open(self.historyFile, 'r') as file:
+			for line in file:
+				historyLines.append(line)
+
+		oldArticles = []
+		for line in historyLines:
+			article = self.extractArticle(line)
+			oldArticles.append(article)
+
+		return oldArticles
+
+	def update(self):
+		""" Get list of articles thanks to the NewsCrawler and update history if needed. """
+		onlineArticles = self.newsCrawler.getArticlesList()
+		onlineArticles = reversed(onlineArticles)
+		oldArticles = self.getArticlesHistory()
+
+		for onlineA in onlineArticles:
+			articleInHistory = False
+
+			for oldA in oldArticles:
+				if onlineA['title'] == oldA['title'] and onlineA['link'] == oldA['link']:
+					articleInHistory = True
+					break
+
+				if not articleInHistory:
+					self.saveArticle(onlineA)
