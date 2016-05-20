@@ -96,7 +96,7 @@ class NewsTracker:
 		""" Saves an article to the history file. """
 		nowObj = datetime.datetime.now()
 		dateStr = nowObj.strftime("%Y-%m-%d %H:%M:%S")
-		historyLine = self.separator.join(dateStr, article['title'], article['link'], article['body'])
+		historyLine = self.separator.join([dateStr, article['title'], article['link'], article['body']])
 
 		with open(self.historyFile, 'a') as file:
 			file.write(historyLine+'\n')
@@ -134,11 +134,16 @@ class NewsTracker:
 
 		for onlineA in onlineArticles:
 			articleInHistory = False
+			print('Article title: '+onlineA['title']+'\t')
 
 			for oldA in oldArticles:
-				if onlineA['title'] == oldA['title'] and onlineA['link'] == oldA['link']:
+				if (onlineA['title'] == oldA['title'] and onlineA['link'] == oldA['link']):
 					articleInHistory = True
+					print('in history.\n')
 					break
 
-				if not articleInHistory:
-					self.saveArticle(onlineA)
+			if not articleInHistory:
+				print('saving.')
+				self.saveArticle(onlineA)
+				print(' Saved.\n')
+
