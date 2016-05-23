@@ -15,14 +15,14 @@ configs = [{
 	'titleSelector': 'h3 a',
 	'bodySelector': 'p + p',
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.mk'
-	
 }]
 
 
 for conf in configs:
-	try:
-		nc = notifier.NewsCrawler(conf)
-		tracker = notifier.NewsTracker(conf['logFile'], nc)
-		tracker.update()
-	except Exception as exc:
-		print('Exception occured: '+exc)
+	# try:
+	nc = notifier.NewsCrawler(conf)
+	tracker = notifier.NewsTracker(conf['logFile'], nc)
+	tracker.update()
+	# except Exception as exc:
+		# print('Coin')
+		# print('watch script, exception occured: '+str(exc))

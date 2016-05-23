@@ -28,42 +28,66 @@ class NewsCrawler:
 
 	def getRequest(self):
 		""" Check if targeted url is accessible. Raises an exception if not. """
-		res = requests.get(self.url)
+		# Adding user agent to simulate request past by a browser to avoid request to be blocked.
+		headers = {'user-agent': 'Mozilla/5.0'}
+		res = requests.get(self.url, headers=headers)
 		res.raise_for_status()
 		return res
 
 	def getSoup(self):
 		""" Get the content of the targeted url. """
-		if self.soup is not None:
-			return self.soup
+		try:
+			res = self.getRequest()
+			soup = bs4.BeautifulSoup(res.text, 'html.parser')
+		except Exception as exc:
+			print('getSoup, exception occured: '+str(exc))
+			soup = ''
 
-		res = self.getRequest()
-		soup = bs4.BeautifulSoup(res.text, 'html.parser')
 		self.soup = soup
+
 		return self.soup
 
 	def getArticlesList(self):
 		""" Get the list of articles adapted, from the page. """
-		if self.articles is not None:
-			return self.articles
-
 		articles = self.buildArticlesList()
 		self.articles = articles
 		return self.articles
 
+	def buildArticle(self, tag):
+		""" Build an article object from the tag representing the article in HTML. """
+		article = {}
+
+		title = tag.select_one(self.titleSelector)
+		titleStr = title.string
+		titleStr = titleStr.strip(' \t\n\r')
+
+		link = title.get('href', '')
+
+		body = tag.select_one(self.bodySelector)
+		if body is None:
+			body = ''
+		else:
+			body = body.get_text()
+		body = body.replace('\n', ' ')
+
+		article['title'] = titleStr
+		article['link'] = link
+		article['body'] = body
+
+		return article
+
 	def buildArticlesList(self):
 		""" Extract articles from the targeted page and build an adapted list of these articles for later easier treatment. """
 		soup = self.getSoup()
+
+		if soup == '':
+			return []
+
 		articleTags = soup.select(self.articleSelector)
 		articles = []
 
 		for tag in articleTags:
-			article = {}
-			title = tag.select_one(self.titleSelector)
-			body = tag.select_one(self.bodySelector)
-			article['title'] = title.string
-			article['link'] = title.get('href', '')
-			article['body'] = body.string
+			article = self.buildArticle(tag)
 			articles.append(article)
 
 		return articles
@@ -147,3 +171,5 @@ class NewsTracker:
 				self.saveArticle(onlineA)
 				print(' Saved.\n')
 
+	def watch(self, timeInterval):
+		print('I am watching you.')
