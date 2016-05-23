@@ -9,10 +9,20 @@ configs = [{
 	'titleSelector': 'h4 a',
 	'bodySelector': '.teaser-content',
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.notifier'
+}, {
+	'url': 'http://www.markknopfler.com/news',
+	'articleSelector': 'article.post',
+	'titleSelector': 'h3 a',
+	'bodySelector': 'p + p',
+	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.mk'
+	
 }]
 
 
 for conf in configs:
-	nc = notifier.NewsCrawler(conf)
-	tracker = notifier.NewsTracker(conf['logFile'], nc)
-	tracker.update()
+	try:
+		nc = notifier.NewsCrawler(conf)
+		tracker = notifier.NewsTracker(conf['logFile'], nc)
+		tracker.update()
+	except Exception as exc:
+		print('Exception occured: '+exc)
