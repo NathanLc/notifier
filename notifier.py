@@ -18,10 +18,14 @@ class NewsCrawler:
 		if(('titleSelector' not in config.keys()) or config['titleSelector'] is None):
 			print('titleSelector not provided.')
 			raise Exception('titleSelector not provided.')
+		if(('linkSelector' not in config.keys()) or config['linkSelector'] is None):
+			print('titleSelector not provided.')
+			raise Exception('titleSelector not provided.')
 
 		self.url = config['url']
 		self.articleSelector = config['articleSelector']
 		self.titleSelector = config['titleSelector']
+		self.linkSelector = config['linkSelector']
 		self.bodySelector = config.get('bodySelector', None)
 		self.soup = None
 		self.articles = None
@@ -58,20 +62,24 @@ class NewsCrawler:
 		article = {}
 
 		title = tag.select_one(self.titleSelector)
-		titleStr = title.string
+		titleStr = title.get_text()
 		titleStr = titleStr.strip(' \t\n\r')
 
-		link = title.get('href', '')
+		link = title.select_one(self.linkSelector)
+		linkStr = link.get('href', '');
 
-		body = tag.select_one(self.bodySelector)
-		if body is None:
+		if self.bodySelector is None:
 			body = ''
 		else:
-			body = body.get_text()
-		body = body.replace('\n', ' ')
+			body = tag.select_one(self.bodySelector)
+			if body is None:
+				body = ''
+			else:
+				body = body.get_text()
+			body = body.replace('\n', ' ')
 
 		article['title'] = titleStr
-		article['link'] = link
+		article['link'] = linkStr
 		article['body'] = body
 
 		return article
