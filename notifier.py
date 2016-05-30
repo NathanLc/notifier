@@ -1,4 +1,4 @@
-import requests, bs4, os, datetime
+import requests, bs4, os, datetime, time, threading
 
 # TODO: Create an article class to have the same format in NewsCrawler and Tracker
 
@@ -29,6 +29,8 @@ class NewsCrawler:
 		self.bodySelector = config.get('bodySelector', None)
 		self.soup = None
 		self.articles = None
+		self.isWatching = False
+		self.watchThread = None
 
 	def getRequest(self):
 		""" Check if targeted url is accessible. Raises an exception if not. """
@@ -65,8 +67,9 @@ class NewsCrawler:
 		titleStr = title.get_text()
 		titleStr = titleStr.strip(' \t\n\r')
 
-		link = title.select_one(self.linkSelector)
+		link = tag.select_one(self.linkSelector)
 		linkStr = link.get('href', '');
+		linkStr = linkStr.strip(' \t\n\r')
 
 		if self.bodySelector is None:
 			body = ''
@@ -76,7 +79,10 @@ class NewsCrawler:
 				body = ''
 			else:
 				body = body.get_text()
+			body = body.strip(' \t\n\r')
 			body = body.replace('\n', ' ')
+			body = body.replace('\r', ' ')
+			body = body.replace('\r\n', ' ')
 
 		article['title'] = titleStr
 		article['link'] = linkStr
@@ -166,18 +172,30 @@ class NewsTracker:
 
 		for onlineA in onlineArticles:
 			articleInHistory = False
-			print('Article title: '+onlineA['title']+'\t')
+			# print('Article title: '+onlineA['title']+'\t')
 
 			for oldA in oldArticles:
 				if (onlineA['title'] == oldA['title'] and onlineA['link'] == oldA['link']):
 					articleInHistory = True
-					print('in history.\n')
+					# print('in history.\n')
 					break
 
 			if not articleInHistory:
-				print('saving.')
+				# print('saving.')
 				self.saveArticle(onlineA)
-				print(' Saved.\n')
+				# print(' Saved.\n')
+
+	def updateAndSleep(self, timeInterval):
+		while True:
+			self.update()
+			time.sleep(timeInterval)
+	
+	def stopWatching(self):
+		self.watchThread.stop()
+		self.isWatching = False
 
 	def watch(self, timeInterval):
-		print('I am watching you.')
+		updateThread = threading.Thread(target=self.updateAndSleep, args=[timeInterval])
+		self.watchThread = updateThread
+		updateThread.start()
+		self.isWatching = True
