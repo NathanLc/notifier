@@ -14,7 +14,7 @@ configs = [{
 	'titleSelector': 'h4',
 	'linkSelector': 'h4 a',
 	'bodySelector': '.teaser-content',
-	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.notifier'
+	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.eune'
 }, {
 	'url': 'http://www.markknopfler.com/news',
 	'articleSelector': 'article.post',
@@ -53,11 +53,16 @@ configs = [{
 }]
 
 
-for conf in configs:
+conf = configs[1]
+nc = notifier.NewsCrawler(conf)
+tracker = notifier.NewsTracker(conf['logFile'], nc)
+tracker.watch(60)
+
+# for conf in configs:
 	# try:
-	nc = notifier.NewsCrawler(conf)
-	tracker = notifier.NewsTracker(conf['logFile'], nc)
-	tracker.update()
+	# nc = notifier.NewsCrawler(conf)
+	# tracker = notifier.NewsTracker(conf['logFile'], nc)
+	# tracker.update()
 	# except Exception as exc:
 		# print('Coin')
 		# print('watch script, exception occured: '+str(exc))
