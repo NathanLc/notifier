@@ -9,6 +9,7 @@ import notifier
 # password = input()
 
 configs = [{
+	'category': 'mk',
 	'url': 'http://www.markknopfler.com/news',
 	'articleSelector': 'article.post',
 	'titleSelector': 'h3',
@@ -16,6 +17,7 @@ configs = [{
 	'bodySelector': 'p + p',
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.mk'
 }, {
+	'category': 'sog',
 	'url': 'http://www.secretsofgrindea.com/index.php/dev-blog',
 	'articleSelector': '#posts div.post',
 	'titleSelector': 'div.header',
@@ -23,6 +25,7 @@ configs = [{
 	'bodySelector': 'div.post-content div.edited-content',
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.sog'
 }, {
+	'category': 'sog',
 	'url': 'https://twitter.com/hashtag/SecretsofGrindea?src=hash&lang=en',
 	'articleSelector': 'div.stream ol li.stream-item div.tweet div.content',
 	'titleSelector': 'div.js-tweet-text-container p',
@@ -30,13 +33,7 @@ configs = [{
 	'bodySelector': None,
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.tweeter.sog'
 }, {
-	'url': 'https://twitter.com/VitalsLH',
-	'articleSelector': 'div.stream ol li.stream-item div.tweet div.content',
-	'titleSelector': 'div.js-tweet-text-container p',
-	'linkSelector': 'div.js-tweet-text-container p a',
-	'bodySelector': None,
-	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.tweeter.vitals'
-}, {
+	'category': 'lh',
 	'url': 'https://twitter.com/lifehacker',
 	'articleSelector': 'div.stream ol li.stream-item div.tweet div.content',
 	'titleSelector': 'div.js-tweet-text-container p',
@@ -48,7 +45,7 @@ configs = [{
 for conf in configs:
 	try:
 		nc = notifier.NewsCrawler(conf)
-		tracker = notifier.NewsTracker(conf['logFile'], nc)
+		tracker = notifier.NewsTracker(nc, conf['category'], conf['logFile'])
 		tracker.watch(90)
 	except Exception as exc:
 		print('watch script, exception occured: '+str(exc))
