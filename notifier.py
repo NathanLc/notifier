@@ -1,4 +1,4 @@
-import requests, bs4, os, datetime, time, threading
+import requests, json, bs4, os, datetime, time, threading
 
 # TODO: Create an article class to have the same format in NewsCrawler and Tracker
 
@@ -26,6 +26,7 @@ class NewsCrawler:
 		self.articleSelector = config['articleSelector']
 		self.titleSelector = config['titleSelector']
 		self.linkSelector = config['linkSelector']
+		self.imageSelector = config.get('imageSelector', None)
 		self.bodySelector = config.get('bodySelector', None)
 		self.soup = None
 		self.articles = None
@@ -78,6 +79,15 @@ class NewsCrawler:
 		linkStr = link.get('href', '');
 		linkStr = self.stripAndReplace(linkStr)
 
+		if self.imageSelector is None:
+			image = ''
+		else:
+			image = tag.select_one(self.imageSelector)
+			if image is None:
+				image = ''
+			else:
+				image = image.get('src')
+
 		if self.bodySelector is None:
 			body = ''
 		else:
@@ -90,6 +100,7 @@ class NewsCrawler:
 
 		article['title'] = titleStr
 		article['link'] = linkStr
+		article['image'] = image
 		article['body'] = body
 
 		return article
@@ -116,10 +127,13 @@ class NewsTracker:
 	This class aims at tracking updates of news or posts.
 	"""
 
-	def __init__(self, historyFile, newsCrawler):
+	def __init__(self, newsCrawler, category, historyFile, api = None):
 		if historyFile is None:
 			print('historyFile not provided.')
 			raise Exception('historyFile not provided.')
+		if category is None:
+			print('category not provided.')
+			raise Exception('category not provided.')
 		if not os.path.isfile(historyFile):
 			print('historyFile is not a valid file.');
 			raise Exception('historyFile is not a valid file.')
@@ -132,29 +146,65 @@ class NewsTracker:
 
 		self.historyFile = historyFile
 		self.newsCrawler = newsCrawler
+		self.category = category
+		self.category_id = None
+		self.api = api
 		self.separator = ' ||| '
 
-	def saveArticle(self, article):
+		self.category_id = self.getAndSetCategoryId()
+
+	def isApiReachable(self):
+		""" Check if the API is reachable. """
+		if self.api is None:
+			return False
+
+		r = requests.get(self.api)
+		try:
+			r.raise_for_status()
+			return True
+		except Exception as exc:
+			return False
+
+	def getCategoryId(self):
+		if self.category_id is not None:
+			return self.category_id
+
+		if not self.isApiReachable:
+			return None
+
+		r = requests.get(self.api+'/categories?shortName='+self.category)
+		result = r.json()
+		data = result['data']
+		category = data[0]
+		cat_id = category['_id']
+		self.category_id = cat_id
+		return cat_id
+
+	def saveArticleLocally(self, article):
 		""" Saves an article to the history file. """
 		nowObj = datetime.datetime.now()
 		dateStr = nowObj.strftime("%Y-%m-%d %H:%M:%S")
-		historyLine = self.separator.join([dateStr, article['title'], article['link'], article['body']])
+		historyLine = self.separator.join([dateStr, article['title'], article['link'], article['image'], article['body']])
 
 		with open(self.historyFile, 'a') as file:
 			file.write(historyLine+'\n')
+	
+	def saveArticleRemotely(self, article):
+		""" Saves the article in the api. """
 
-	def extractArticle(self, historyLine):
+	def extractArticleFromLocalHistory(self, historyLine):
 		""" Build an article from an history line. """
 		lineSplit = historyLine.split(self.separator)
 		article = {}
-		article['date'] = lineSplit[0]
+		article['createdAt'] = lineSplit[0]
 		article['title'] = lineSplit[1]
 		article['link'] = lineSplit[2]
-		article['body'] = lineSplit[3]
+		article['image'] = lineSplit[3]
+		article['body'] = lineSplit[4]
 
 		return article
 
-	def getArticlesHistory(self):
+	def getLocalArticlesHistory(self):
 		""" Get the list of former articles from the history. """
 		historyLines = []
 		with open(self.historyFile, 'r') as file:
@@ -163,31 +213,55 @@ class NewsTracker:
 
 		oldArticles = []
 		for line in historyLines:
-			article = self.extractArticle(line)
+			article = self.extractArticleFromLocalHistory(line)
 			oldArticles.append(article)
 
 		return oldArticles
+
+	def getRemoteArticlesHistory(self):
+		""" Get the list of former articles from the api. """
+		category_id = self.getCategoryId()
+		if category_id is None:
+			return None
+
+		if not self.isApiReachable():
+			return None
+
+		r = requests.get(self.api+'/categories/'+category_id)
+		result = r.json()
+		return result['articles']
 
 	def update(self):
 		""" Get list of articles thanks to the NewsCrawler and update history if needed. """
 		onlineArticles = self.newsCrawler.getArticlesList()
 		onlineArticles = reversed(onlineArticles)
-		oldArticles = self.getArticlesHistory()
+		oldLocalArticles = self.getLocalArticlesHistory()
+		oldRemoteArticles = self.getRemoteArticlesHistory()
 
 		for onlineA in onlineArticles:
-			articleInHistory = False
+			articleInLocalHistory = False
+			articleInRemoteHistory = False
 			# print('Article title: '+onlineA['title']+'\t')
 
-			for oldA in oldArticles:
-				if (onlineA['title'] == oldA['title'] and onlineA['link'] == oldA['link']):
-					articleInHistory = True
+			for oldLocalA in oldLocalArticles:
+				if (onlineA['title'] == oldLocalA['title'] and onlineA['link'] == oldLocalA['link']):
+					articleInLocalHistory = True
 					# print('in history.\n')
 					break
 
-			if not articleInHistory:
+			if oldRemoteArticles is not None:
+				for oldRemoteA in oldRemoteArticles:
+					if (onlineA['title'] == oldRemoteA['title'] and onlineA['link'] == oldRemoteA['link']):
+						articleInRemoteHistory = True
+						break
+
+			if not articleInLocalHistory:
 				# print('saving.')
-				self.saveArticle(onlineA)
+				self.saveArticleLocally(onlineA)
 				# print(' Saved.\n')
+
+			if not articleInRemoteHistory:
+				self.saveArticleRemotely(onlineA)
 
 	def updateAndSleep(self, timeInterval):
 		while True:
