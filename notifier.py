@@ -59,17 +59,24 @@ class NewsCrawler:
 		self.articles = articles
 		return self.articles
 
+	def stripAndReplace(self, text):
+		text = text.strip(' \t\n\r');
+		text = text.replace('\n', ' ')
+		text = text.replace('\r', ' ')
+		text = text.replace('\r\n', ' ')
+		return text
+
 	def buildArticle(self, tag):
 		""" Build an article object from the tag representing the article in HTML. """
 		article = {}
 
 		title = tag.select_one(self.titleSelector)
 		titleStr = title.get_text()
-		titleStr = titleStr.strip(' \t\n\r')
+		titleStr = self.stripAndReplace(titleStr)
 
 		link = tag.select_one(self.linkSelector)
 		linkStr = link.get('href', '');
-		linkStr = linkStr.strip(' \t\n\r')
+		linkStr = self.stripAndReplace(linkStr)
 
 		if self.bodySelector is None:
 			body = ''
@@ -79,10 +86,7 @@ class NewsCrawler:
 				body = ''
 			else:
 				body = body.get_text()
-			body = body.strip(' \t\n\r')
-			body = body.replace('\n', ' ')
-			body = body.replace('\r', ' ')
-			body = body.replace('\r\n', ' ')
+			body = self.stripAndReplace(body)
 
 		article['title'] = titleStr
 		article['link'] = linkStr

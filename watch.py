@@ -9,13 +9,6 @@ import notifier
 # password = input()
 
 configs = [{
-	'url': 'http://eune.leagueoflegends.com/en/news',
-	'articleSelector': '.node-article',
-	'titleSelector': 'h4',
-	'linkSelector': 'h4 a',
-	'bodySelector': '.teaser-content',
-	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.eune'
-}, {
 	'url': 'http://www.markknopfler.com/news',
 	'articleSelector': 'article.post',
 	'titleSelector': 'h3',
@@ -52,17 +45,10 @@ configs = [{
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.tweeter.lh'
 }]
 
-
-conf = configs[1]
-nc = notifier.NewsCrawler(conf)
-tracker = notifier.NewsTracker(conf['logFile'], nc)
-tracker.watch(60)
-
-# for conf in configs:
-	# try:
-	# nc = notifier.NewsCrawler(conf)
-	# tracker = notifier.NewsTracker(conf['logFile'], nc)
-	# tracker.update()
-	# except Exception as exc:
-		# print('Coin')
-		# print('watch script, exception occured: '+str(exc))
+for conf in configs:
+	try:
+		nc = notifier.NewsCrawler(conf)
+		tracker = notifier.NewsTracker(conf['logFile'], nc)
+		tracker.watch(90)
+	except Exception as exc:
+		print('watch script, exception occured: '+str(exc))
