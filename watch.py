@@ -17,6 +17,7 @@ configs = [{
 	'articleSelector': '#posts div.post',
 	'titleSelector': 'div.header',
 	'linkSelector': 'div.header a',
+	'imageSelector': 'div.post-content div.edited-content img',
 	'bodySelector': 'div.post-content div.edited-content',
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.sog'
 }, {
@@ -25,6 +26,7 @@ configs = [{
 	'articleSelector': 'div.stream ol li.stream-item div.tweet div.content',
 	'titleSelector': 'div.js-tweet-text-container p',
 	'linkSelector': 'div.js-tweet-text-container p a',
+	'imageSelector': 'div.AdaptiveMedia img',
 	'bodySelector': None,
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.tweeter.sog'
 }, {
@@ -33,6 +35,7 @@ configs = [{
 	'articleSelector': 'div.stream ol li.stream-item div.tweet div.content',
 	'titleSelector': 'div.js-tweet-text-container p',
 	'linkSelector': 'div.js-tweet-text-container p a',
+	'imageSelector': 'div.AdaptiveMedia img',
 	'bodySelector': None,
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.tweeter.lh'
 }]
