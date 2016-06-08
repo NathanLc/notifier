@@ -151,7 +151,7 @@ class NewsTracker:
 		self.api = api
 		self.separator = ' ||| '
 
-		self.category_id = self.getAndSetCategoryId()
+		self.category_id = self.getRemoteCategoryId()
 
 	def isApiReachable(self):
 		""" Check if the API is reachable. """
@@ -165,7 +165,7 @@ class NewsTracker:
 		except Exception as exc:
 			return False
 
-	def getCategoryId(self):
+	def getRemoteCategoryId(self):
 		if self.category_id is not None:
 			return self.category_id
 
@@ -174,8 +174,7 @@ class NewsTracker:
 
 		r = requests.get(self.api+'/categories?shortName='+self.category)
 		result = r.json()
-		data = result['data']
-		category = data[0]
+		category = result[0]
 		cat_id = category['_id']
 		self.category_id = cat_id
 		return cat_id
@@ -191,6 +190,15 @@ class NewsTracker:
 	
 	def saveArticleRemotely(self, article):
 		""" Saves the article in the api. """
+		payload = {
+			'title': article['title'],
+			'category_id': self.getRemoteCategoryId(),
+			'link': article['link'],
+			'image': article['image'],
+			'body': article['body']
+		}
+
+		r = requests.post(self.api+'/articles', data=payload)
 
 	def extractArticleFromLocalHistory(self, historyLine):
 		""" Build an article from an history line. """
@@ -220,7 +228,7 @@ class NewsTracker:
 
 	def getRemoteArticlesHistory(self):
 		""" Get the list of former articles from the api. """
-		category_id = self.getCategoryId()
+		category_id = self.getRemoteCategoryId()
 		if category_id is None:
 			return None
 
@@ -231,37 +239,51 @@ class NewsTracker:
 		result = r.json()
 		return result['articles']
 
-	def update(self):
-		""" Get list of articles thanks to the NewsCrawler and update history if needed. """
-		onlineArticles = self.newsCrawler.getArticlesList()
-		onlineArticles = reversed(onlineArticles)
+	def isSameArticle(self, oldArticle, newArticle):
+		""" Compare if 2 articles are the same. """
+		if (newArticle['title'] == oldArticle['title'] and newArticle['link'] == oldArticle['link']):
+			return True
+		else:
+			return False
+
+	def updateLocally(self, onlineArticles):
+		""" Update the list of articles locally. """
 		oldLocalArticles = self.getLocalArticlesHistory()
-		oldRemoteArticles = self.getRemoteArticlesHistory()
 
 		for onlineA in onlineArticles:
 			articleInLocalHistory = False
-			articleInRemoteHistory = False
-			# print('Article title: '+onlineA['title']+'\t')
 
 			for oldLocalA in oldLocalArticles:
-				if (onlineA['title'] == oldLocalA['title'] and onlineA['link'] == oldLocalA['link']):
-					articleInLocalHistory = True
-					# print('in history.\n')
+				articleInLocalHistory = self.isSameArticle(oldLocalA, onlineA)
+				if articleInLocalHistory:
 					break
 
-			if oldRemoteArticles is not None:
-				for oldRemoteA in oldRemoteArticles:
-					if (onlineA['title'] == oldRemoteA['title'] and onlineA['link'] == oldRemoteA['link']):
-						articleInRemoteHistory = True
-						break
-
 			if not articleInLocalHistory:
-				# print('saving.')
 				self.saveArticleLocally(onlineA)
-				# print(' Saved.\n')
+
+	def updateRemotely(self, onlineArticles):
+		""" Update the list of articles with the api. """
+		oldRemoteArticles = self.getRemoteArticlesHistory()
+
+		for onlineA in onlineArticles:
+			articleInRemoteHistory = False
+
+			for oldRemoteA in oldRemoteArticles:
+				articleInRemoteHistory = self.isSameArticle(oldRemoteA, onlineA)
+				if articleInRemoteHistory:
+					break
 
 			if not articleInRemoteHistory:
 				self.saveArticleRemotely(onlineA)
+
+	def update(self):
+		""" Get list of articles thanks to the NewsCrawler and update history if needed. """
+		onlineArticles = self.newsCrawler.getArticlesList()
+
+		self.updateLocally(onlineArticles)
+
+		if self.api is not None:
+			self.updateRemotely(onlineArticles)
 
 	def updateAndSleep(self, timeInterval):
 		while True:

@@ -1,10 +1,10 @@
 import requests, json
+payload = {
+	'title': 'New SoG Post',
+	'category_id': 'rHKPhIJnugW8nluH',
+	'link': 'http://www.secretsofgrindea.com/index.php/dev-blog',
+	'image': 'http://lorempixel.com/400/200/',
+	'body': 'This is a test blablabla'
+}
 
-r = requests.get('http://localhost:3030/categories')
-r.raise_for_status()
-
-result = r.json()
-data = result['data']
-
-for cat in data:
-	print(cat['shortName'])
+r = requests.post('http://localhost:3030/articles', data=payload)

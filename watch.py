@@ -3,11 +3,6 @@
 
 import notifier
 
-# print('Username:')
-# username = input()
-# print('Password:')
-# password = input()
-
 configs = [{
 	'category': 'mk',
 	'url': 'http://www.markknopfler.com/news',
@@ -42,10 +37,12 @@ configs = [{
 	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.tweeter.lh'
 }]
 
+api = 'http://localhost:3030'
+
 for conf in configs:
 	try:
 		nc = notifier.NewsCrawler(conf)
-		tracker = notifier.NewsTracker(nc, conf['category'], conf['logFile'])
+		tracker = notifier.NewsTracker(nc, conf['category'], conf['logFile'], api)
 		tracker.watch(90)
 	except Exception as exc:
 		print('watch script, exception occured: '+str(exc))
