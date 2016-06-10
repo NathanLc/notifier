@@ -155,9 +155,9 @@ class NewsCrawler:
 			article = self.buildArticle(tag)
 			articles.append(article)
 
-		reversedArticles = reversed(articles)
+		# reversedArticles = reversed(articles)
 
-		return reversedArticles
+		return articles
 
 
 class NewsTracker:
@@ -313,6 +313,7 @@ class NewsTracker:
 					break
 
 			if not articleInRemoteHistory:
+				print('saving article')
 				self.saveArticleRemotely(onlineA)
 
 	def update(self):
