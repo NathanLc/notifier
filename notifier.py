@@ -1,4 +1,4 @@
-import requests, json, bs4, os, datetime, time, threading
+import requests, json, bs4, os, datetime, time, threading, copy
 
 # TODO: Create an article class to have the same format in NewsCrawler and Tracker
 
@@ -63,23 +63,53 @@ class NewsCrawler:
 		return self.articles
 
 	def stripAndReplace(self, text):
-		text = text.strip(' \t\n\r');
+		text = text.strip(' \t\n\r')
 		text = text.replace('\n', ' ')
 		text = text.replace('\r', ' ')
 		text = text.replace('\r\n', ' ')
 		return text
+
+	def sanitizeForText(self, tag):
+		copyTag = copy.copy(tag)
+		text = copyTag.get_text()
+		text = self.stripAndReplace(text)
+		return text
+
+	def removeTagAttrs(self, tag):
+		if not hasattr(tag, 'attrs'):
+			return
+
+		attrToDelete = []
+		for attr in tag.attrs.keys():
+			if attr not in ['src', 'href']:
+				attrToDelete.append(attr)
+		for attr in attrToDelete:
+			del tag[attr]
+
+	def sanitizeForHtml(self, tag):
+		copyTag = copy.copy(tag)
+		self.removeTagAttrs(copyTag)
+
+		for descendant in copyTag.descendants:
+			self.removeTagAttrs(descendant)
+
+		htmlString = str(copyTag)
+		return htmlString
 
 	def buildArticle(self, tag):
 		""" Build an article object from the tag representing the article in HTML. """
 		article = {}
 
 		title = tag.select_one(self.titleSelector)
-		titleStr = title.get_text()
-		titleStr = self.stripAndReplace(titleStr)
+		titleStr = self.sanitizeForText(title)
+		titleHtml = self.sanitizeForHtml(title)
 
 		link = tag.select_one(self.linkSelector)
-		linkStr = link.get('href', '');
-		linkStr = self.stripAndReplace(linkStr)
+		if link is None:
+			linkStr = ''
+		else:
+			linkStr = link.get('href', '');
+			linkStr = self.stripAndReplace(linkStr)
 
 		if self.imageSelector is None:
 			image = ''
@@ -88,22 +118,26 @@ class NewsCrawler:
 			if image is None:
 				image = ''
 			else:
-				image = image.get('src')
+				image = image.get('src', None)
 
 		if self.bodySelector is None:
-			body = ''
+			bodyStr = ''
+			bodyHtml = ''
 		else:
 			body = tag.select_one(self.bodySelector)
 			if body is None:
-				body = ''
+				bodyStr = ''
+				bodyHtml = ''
 			else:
-				body = body.get_text()
-			body = self.stripAndReplace(body)
+				bodyStr = self.sanitizeForText(body)
+				bodyHtml = self.sanitizeForHtml(body)
 
 		article['title'] = titleStr
+		article['titleHtml'] = titleHtml
 		article['link'] = linkStr
 		article['image'] = image
-		article['body'] = body
+		article['body'] = bodyStr
+		article['bodyHtml'] = bodyHtml
 
 		return article
 
@@ -121,7 +155,9 @@ class NewsCrawler:
 			article = self.buildArticle(tag)
 			articles.append(article)
 
-		return articles
+		reversedArticles = reversed(articles)
+
+		return reversedArticles
 
 
 class NewsTracker:
@@ -185,7 +221,7 @@ class NewsTracker:
 		""" Saves an article to the history file. """
 		nowObj = datetime.datetime.now()
 		dateStr = nowObj.strftime("%Y-%m-%d %H:%M:%S")
-		historyLine = self.separator.join([dateStr, article['title'], article['link'], article['image'], article['body']])
+		historyLine = self.separator.join([dateStr, article['title'], article['link'], article['body']])
 
 		with open(self.historyFile, 'a') as file:
 			file.write(historyLine+'\n')
@@ -194,10 +230,12 @@ class NewsTracker:
 		""" Saves the article in the api. """
 		payload = {
 			'title': article['title'],
+			'titleHtml': article['titleHtml'],
 			'category_id': self.getRemoteCategoryId(),
 			'link': article['link'],
 			'image': article['image'],
-			'body': article['body']
+			'body': article['body'],
+			'bodyHtml': article['bodyHtml']
 		}
 
 		r = requests.post(self.api+'/articles', data=payload)
@@ -209,8 +247,7 @@ class NewsTracker:
 		article['createdAt'] = lineSplit[0]
 		article['title'] = lineSplit[1]
 		article['link'] = lineSplit[2]
-		article['image'] = lineSplit[3]
-		article['body'] = lineSplit[4]
+		article['body'] = lineSplit[3]
 
 		return article
 
