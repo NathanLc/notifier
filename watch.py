@@ -1,7 +1,11 @@
 #!/usr/bin/python3
 # -*-coding:Utf-8 -*
 
-import notifier
+import notifier, os
+import localConfig
+
+api = localConfig.api
+logsFolder = localConfig.logsFolder
 
 configs = [{
 	'category': 'mk',
@@ -10,7 +14,7 @@ configs = [{
 	'titleSelector': 'h3',
 	'linkSelector': 'h3 a',
 	'bodySelector': 'p + p',
-	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.mk'
+	'logFile': os.path.join(logsFolder, 'log.mk')
 }, {
 	'category': 'sog',
 	'url': 'http://www.secretsofgrindea.com/index.php/dev-blog',
@@ -19,7 +23,7 @@ configs = [{
 	'linkSelector': 'div.header a',
 	'imageSelector': 'div.post-content div.edited-content img',
 	'bodySelector': 'div.post-content div.edited-content',
-	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.sog'
+	'logFile': os.path.join(logsFolder, 'log.sog')
 }, {
 	'category': 'sog',
 	'url': 'https://twitter.com/hashtag/SecretsofGrindea?src=hash&lang=en',
@@ -28,7 +32,7 @@ configs = [{
 	'linkSelector': 'div.js-tweet-text-container p a',
 	'imageSelector': 'div.AdaptiveMedia img',
 	'bodySelector': None,
-	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.tweeter.sog'
+	'logFile': os.path.join(logsFolder, 'log.tweeter.sog')
 }, {
 	'category': 'lh',
 	'url': 'https://twitter.com/lifehacker',
@@ -37,10 +41,8 @@ configs = [{
 	'linkSelector': 'div.js-tweet-text-container p a',
 	'imageSelector': 'div.AdaptiveMedia img',
 	'bodySelector': None,
-	'logFile': '/Users/nathan/sandbox/Notifier/logs/log.tweeter.lh'
+	'logFile': os.path.join(logsFolder, 'log.tweeter.lh')
 }]
-
-api = 'http://localhost:3030'
 
 for conf in configs:
 	try:

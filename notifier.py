@@ -28,6 +28,8 @@ class NewsCrawler:
 		self.linkSelector = config['linkSelector']
 		self.imageSelector = config.get('imageSelector', None)
 		self.bodySelector = config.get('bodySelector', None)
+		# self.pageTitleSelector = config.get('pageTitleSelector', None)
+		# self.pageIconSelector = config.get('pageIconSelector', None)
 		self.soup = None
 		self.articles = None
 		self.isWatching = False
