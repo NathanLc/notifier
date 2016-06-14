@@ -313,7 +313,6 @@ class NewsTracker:
 					break
 
 			if not articleInRemoteHistory:
-				print('saving article')
 				self.saveArticleRemotely(onlineA)
 
 	def update(self):

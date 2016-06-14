@@ -42,12 +42,21 @@ configs = [{
 	'imageSelector': 'div.AdaptiveMedia img',
 	'bodySelector': None,
 	'logFile': os.path.join(logsFolder, 'log.tweeter.lh')
+}, {
+	'category': 'candh',
+	'url': 'http://explosm.net/comics/archive',
+	'articleSelector': 'div.archive-list-item',
+	'titleSelector': 'div.meta-data > h3',
+	'linkSelector': 'div.meta-data > h3 > a',
+	'imageSelector': 'img.comic-thumbnail',
+	'bodySelector': 'div.meta-data .author-credit-name',
+	'logFile': os.path.join(logsFolder, 'log.cyanide')
 }]
 
 for conf in configs:
-	try:
-		nc = notifier.NewsCrawler(conf)
-		tracker = notifier.NewsTracker(nc, conf['category'], conf['logFile'], api)
-		tracker.watch(90)
-	except Exception as exc:
-		print('watch script, exception occured: '+str(exc))
+	# try:
+	nc = notifier.NewsCrawler(conf)
+	tracker = notifier.NewsTracker(nc, conf['category'], conf['logFile'], api)
+	tracker.watch(90)
+	# except Exception as exc:
+		# print('watch script, exception occured: '+str(exc))
