@@ -55,8 +55,8 @@ configs = [{
 	'category': 'blocket',
 	'url': 'https://www.blocket.se/goteborg?q=tangentbord&cg=5000&w=1&st=s&ca=15&is=1&l=0&md=th',
 	'articleSelector': '#item_list article.item_row',
-	'titleSelector': 'div-body.desc > h1',
-	'linkSelector': 'div-body.desc > h1 > a',
+	'titleSelector': 'div.media-body.desc > h1',
+	'linkSelector': 'div.media-body.desc > h1 > a',
 	'imageSelector': 'a > img.item_image',
 	'bodySelector': 'div.media-body.desc p.list_price',
 	'logFile': os.path.join(logsFolder, 'log.blocket.keyboard')
