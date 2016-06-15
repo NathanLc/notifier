@@ -153,7 +153,7 @@ class NewsCrawler:
 
 		for tag in articleTags:
 			article = self.buildArticle(tag)
-			articles.append(article)
+			articles.insert(0, article)
 
 		# reversedArticles = reversed(articles)
 
