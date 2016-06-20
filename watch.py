@@ -60,6 +60,15 @@ configs = [{
 	'imageSelector': 'a > img.item_image',
 	'bodySelector': 'div.media-body.desc p.list_price',
 	'logFile': os.path.join(logsFolder, 'log.blocket.keyboard')
+}, {
+	'category': 'blocket',
+	'url': 'https://www.blocket.se/goteborg?q=tangentbord&cg=5020&w=1&st=s&c=5023&ca=15&is=1&l=0&md=th',
+	'articleSelector': '#item_list article.item_row',
+	'titleSelector': 'div.media-body.desc > h1',
+	'linkSelector': 'div.media-body.desc > h1 > a',
+	'imageSelector': 'a > img.item_image',
+	'bodySelector': 'div.media-body.desc p.list_price',
+	'logFile': os.path.join(logsFolder, 'log.blocket.keyboard')
 }]
 
 for conf in configs:
