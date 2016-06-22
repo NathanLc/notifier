@@ -28,8 +28,6 @@ class NewsCrawler:
 		self.linkSelector = config['linkSelector']
 		self.imageSelector = config.get('imageSelector', None)
 		self.bodySelector = config.get('bodySelector', None)
-		# self.pageTitleSelector = config.get('pageTitleSelector', None)
-		# self.pageIconSelector = config.get('pageIconSelector', None)
 		self.soup = None
 		self.articles = None
 		self.isWatching = False
@@ -96,12 +94,25 @@ class NewsCrawler:
 		htmlString = str(copyTag)
 		return htmlString
 
+	def extractSrcFromImgTag(self, tag):
+		image = ''
+		if tag.name == 'img':
+			image = tag.get('src', '')
+		elif tag.name == 'source':
+			image = tag.get('data-srcset', '')
+
+		return image
+
 	def buildArticle(self, tag):
 		""" Build an article object from the tag representing the article in HTML. """
 		article = {}
 
 		title = tag.select_one(self.titleSelector)
 		titleStr = self.sanitizeForText(title)
+		# If the title is empty, the article is probably not targeted and we do not want to save it
+		if titleStr == '':
+			return False
+
 		titleHtml = self.sanitizeForHtml(title)
 
 		link = tag.select_one(self.linkSelector)
@@ -118,7 +129,7 @@ class NewsCrawler:
 			if image is None:
 				image = ''
 			else:
-				image = image.get('src', None)
+				image = self.extractSrcFromImgTag(image)
 
 		if self.bodySelector is None:
 			bodyStr = ''
@@ -153,9 +164,8 @@ class NewsCrawler:
 
 		for tag in articleTags:
 			article = self.buildArticle(tag)
-			articles.insert(0, article)
-
-		# reversedArticles = reversed(articles)
+			if article is not False:
+				articles.insert(0, article)
 
 		return articles
 

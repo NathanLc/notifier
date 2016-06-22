@@ -35,13 +35,13 @@ configs = [{
 	'logFile': os.path.join(logsFolder, 'log.tweeter.sog')
 }, {
 	'category': 'lh',
-	'url': 'https://twitter.com/lifehacker',
-	'articleSelector': 'div.stream ol li.stream-item div.tweet div.content',
-	'titleSelector': 'div.js-tweet-text-container p',
-	'linkSelector': 'div.js-tweet-text-container p a',
-	'imageSelector': 'div.AdaptiveMedia img',
-	'bodySelector': None,
-	'logFile': os.path.join(logsFolder, 'log.tweeter.lh')
+	'url': 'http://lifehacker.com/',
+	'articleSelector': 'section.main div.hfeed div.post-wrapper article',
+	'titleSelector': 'header h1',
+	'linkSelector': 'header h1 a',
+	'imageSelector': 'div.item__content figure.asset div.img-wrapper picture source',
+	'bodySelector': 'div.item__content div.excerpt p.first-text',
+	'logFile': os.path.join(logsFolder, 'log.lh')
 }, {
 	'category': 'candh',
 	'url': 'http://explosm.net/comics/archive',
