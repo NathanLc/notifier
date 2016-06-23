@@ -249,10 +249,10 @@ class NewsTracker:
 			'body': article['body'],
 			'bodyHtml': article['bodyHtml']
 		}
-		if self.siteName is not None:
-			payload['siteName'] = self.siteName
-		if self.siteIcon is not None:
-			payload['siteIcon'] = self.siteIcon
+		if self.newsCrawler.siteName is not None:
+			payload['siteName'] = self.newsCrawler.siteName
+		if self.newsCrawler.siteIcon is not None:
+			payload['siteIcon'] = self.newsCrawler.siteIcon
 
 		r = requests.post(self.api+'/articles', data=payload)
 
