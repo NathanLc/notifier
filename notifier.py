@@ -28,6 +28,8 @@ class NewsCrawler:
 		self.linkSelector = config['linkSelector']
 		self.imageSelector = config.get('imageSelector', None)
 		self.bodySelector = config.get('bodySelector', None)
+		self.siteName = config.get('siteName', None)
+		self.siteIcon = config.get('siteIcon', None)
 		self.soup = None
 		self.articles = None
 		self.isWatching = False
@@ -247,6 +249,10 @@ class NewsTracker:
 			'body': article['body'],
 			'bodyHtml': article['bodyHtml']
 		}
+		if self.siteName is not None:
+			payload['siteName'] = self.siteName
+		if self.siteIcon is not None:
+			payload['siteIcon'] = self.siteIcon
 
 		r = requests.post(self.api+'/articles', data=payload)
 
