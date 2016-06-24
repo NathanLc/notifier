@@ -38,7 +38,7 @@ configs = [{
 	'bodySelector': None,
 	'logFile': os.path.join(logsFolder, 'log.tweeter.sog'),
 	'siteName': 'twitter',
-	'siteIcon': 'abs.twimg.com/favicons/win8-tile-144.png'
+	'siteIcon': 'http://abs.twimg.com/favicons/favicon.ico'
 }, {
 	'category': 'lh',
 	'url': 'http://lifehacker.com/',
